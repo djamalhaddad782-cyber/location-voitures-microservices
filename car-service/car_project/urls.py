@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.http import JsonResponse   # Ajout pour la route de santé
+from django.http import JsonResponse   
 
 urlpatterns = [
     path('health/', lambda request: JsonResponse({'status': 'ok'})),
@@ -26,6 +26,6 @@ urlpatterns = [
     path('api/', include('cars.urls')),
 ]
 
-# ⚠️ Ceci sert les fichiers médias seulement en mode DEBUG (utile pour le développement)
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

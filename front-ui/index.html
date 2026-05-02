@@ -198,7 +198,7 @@
     const AUTH_URL = 'http://localhost/api/auth';
     const CARS_URL = 'http://localhost/api/cars';
     const BOOKINGS_URL = 'http://localhost/api';
-    
+
     let carsMap = new Map();
     let usersMap = new Map();
 
@@ -663,7 +663,7 @@
         sub.innerHTML = html;
     }
 
-    // 🚀 CORRECTION DÉFINITIVE : ne JAMAIS envoyer image_url si vide ou trop long
+    
     async function addCar() {
         const brand = document.getElementById('newBrand').value.trim();
         const model = document.getElementById('newModel').value.trim();
@@ -676,7 +676,7 @@
             return;
         }
 
-        // Corps de base sans image_url
+        
         const carData = {
             brand: brand,
             model: model,
@@ -686,7 +686,7 @@
             owner_id: currentUserId || 1
         };
 
-        // Ajouter image_url uniquement si une URL valide (non vide, max 200 caractères) est fournie
+        
         if (url && url.length > 0 && url.length <= 200) {
             carData.image_url = url;
         } else if (url && url.length > 200) {
@@ -702,8 +702,8 @@
             if (response.ok) {
                 showToast("✅ Voiture ajoutée avec succès !", 'success');
                 await fetchCars();
-                showCarsManagementPage(); // rafraîchir la page admin
-                // Si l'utilisateur est admin, on reste sur la page gestion voitures
+                showCarsManagementPage(); 
+                
             } else {
                 const err = await response.json();
                 let msg = "Erreur lors de l'ajout : ";

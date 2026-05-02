@@ -19,7 +19,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             
             car_id = booking.car_id
             try:
-                # Appel au service des voitures (nom du conteneur Docker)
+                
                 car_response = requests.get(f"http://car-service:8001/api/cars/{car_id}/")
                 
                 if car_response.status_code != 200:
@@ -64,7 +64,7 @@ class BookingViewSet(viewsets.ModelViewSet):
 
 
 class AdminBookingViewSet(viewsets.ModelViewSet):
-    permission_classes = [AllowAny]  # Pas d'authentification (pour test)
+    permission_classes = [AllowAny] 
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
     
@@ -74,7 +74,7 @@ class AdminBookingViewSet(viewsets.ModelViewSet):
         booking.status = 'accepted'
         booking.save()
         
-        # Rendre la voiture indisponible
+        
         try:
             requests.patch(f"http://car-service:8001/api/cars/{booking.car_id}/", json={"available": False})
             print(f"✅ Réservation #{booking.id} ACCEPTÉE")
@@ -91,7 +91,7 @@ class AdminBookingViewSet(viewsets.ModelViewSet):
         print(f"❌ Réservation #{booking.id} REFUSÉE")
         return Response({'status': 'refused', 'booking_id': booking.id})
     
-    # ⬇️ NOUVELLE ACTION : Voiture prise par le client
+    
     @action(detail=True, methods=['patch'])
     def car_taken(self, request, pk=None):
         booking = self.get_object()
@@ -100,13 +100,13 @@ class AdminBookingViewSet(viewsets.ModelViewSet):
         print(f"🚗 Réservation #{booking.id} : voiture prise par le client")
         return Response({'status': 'car_taken', 'booking_id': booking.id})
     
-    # ⬇️ NOUVELLE ACTION : Marquer comme terminée
+    
     @action(detail=True, methods=['patch'])
     def complete(self, request, pk=None):
         booking = self.get_object()
         booking.status = 'completed'
         booking.save()
-        # Libérer la voiture
+    
         try:
             requests.patch(f"http://car-service:8001/api/cars/{booking.car_id}/", json={"available": True})
             print(f"🏁 Réservation #{booking.id} TERMINÉE, voiture libérée")

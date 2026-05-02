@@ -97,7 +97,6 @@ REST_FRAMEWORK = {
 CORS_ALLOW_ALL_ORIGINS = True
 import os
 
-# Chemin absolu vers le dossier 'media' dans ton projet
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-# URL de base pour accéder aux médias via le navigateur
+
 MEDIA_URL = '/media/'
