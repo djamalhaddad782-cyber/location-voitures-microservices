@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Drive & Go · Location de voitures premium</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f5f7fb; color: #1f2937; min-height: 100vh; display: flex; flex-direction: column; }
+        .header {
+            background: linear-gradient(135deg, #0b2b3f 0%, #1a4a6f 100%);
+            color: white;
+            padding: 1rem 2rem;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10;
+            position: sticky;
+            top: 0;
+        }
+        .header h1 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            text-align: center;
+            margin: 0;
+        }
+        .header h1 i { margin-right: 12px; color: #fbbf24; }
+        .logout-header-btn {
+            position: absolute;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+        .logout-header-btn:hover { background: #dc2626; }
+        .admin-layout { display: flex; flex: 1; min-height: calc(100vh - 72px); }
+        .admin-sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 72px;
+            height: calc(100vh - 72px);
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.02);
+        }
+        .admin-sidebar .sidebar-buttons { display: flex; flex-direction: column; gap: 0.5rem; padding: 0 1rem; }
+        .sidebar-btn {
+            background: transparent;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #334155;
+        }
+        .sidebar-btn i { width: 24px; font-size: 1.1rem; }
+        .sidebar-btn:hover { background: #f1f5f9; color: #1a4a6f; }
+        .sidebar-btn.active { background: #e0f2fe; color: #0f3a56; font-weight: 600; border-left: 3px solid #1a4a6f; }
+        .admin-content { flex: 1; padding: 2rem; overflow-y: auto; background: #f8fafc; }
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 60px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            border: 1px solid #eef2ff;
+        }
+        .action-bar button {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 0.9rem 1.8rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            color: #1e293b;
+        }
+        .action-bar button i { font-size: 1.3rem; }
+        .action-bar button:hover { background: #1a4a6f; color: white; border-color: #1a4a6f; transform: translateY(-2px); box-shadow: 0 6px 14px rgba(26,74,111,0.2); }
+        @media (max-width: 640px) {
+            .action-bar button { padding: 0.7rem 1.2rem; font-size: 1rem; }
+            .header h1 { font-size: 1.2rem; }
+            .logout-header-btn { padding: 0.3rem 0.8rem; font-size: 0.8rem; right: 1rem; }
+        }
+        .car-card { background: white; border-radius: 28px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .car-card:hover { transform: translateY(-4px); }
+        .car-image { width: 100%; height: 200px; object-fit: cover; }
+        .car-info { padding: 1.2rem 1.5rem 1.5rem; }
+        .price { font-size: 1.6rem; font-weight: 700; color: #10b981; }
+        .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 30px; font-size: 0.75rem; font-weight: 600; }
+        .badge-available { background: #dcfce7; color: #15803d; }
+        .badge-unavailable { background: #fee2e2; color: #b91c1c; }
+        .reservation-card, .admin-card { background: white; border-radius: 24px; padding: 1.5rem; margin-bottom: 1rem; border: 1px solid #edf2f7; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+        .status-badge { display: inline-block; padding: 0.25rem 0.8rem; border-radius: 30px; font-size: 0.75rem; font-weight: 600; }
+        .status-pending { background: #fef3c7; color: #b45309; }
+        .status-accepted { background: #dcfce7; color: #15803d; }
+        .status-car_taken { background: #fff3e3; color: #c2410c; }
+        .status-completed { background: #e0f2fe; color: #0369a1; }
+        .add-car-form {
+            background: #f8fafc;
+            border-radius: 28px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+        .add-car-form input { flex: 1; padding: 0.7rem 1rem; border: 1px solid #cbd5e1; border-radius: 40px; }
+        .add-car-form button { background: #1a4a6f; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: 40px; cursor: pointer; }
+        .loading { text-align: center; padding: 3rem; color: #64748b; }
+        .hidden { display: none; }
+        footer { text-align: center; padding: 1rem; background: #eef2f8; margin-top: auto; font-size: 0.8rem; color: #94a3b8; }
+        button { cursor: pointer; }
+        .btn-accept { background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 40px; margin-right: 8px; }
+        .btn-refuse { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 40px; }
+        .btn-car-taken { background: #f59e0b; color: white; border: none; padding: 8px 16px; border-radius: 40px; }
+        .btn-complete { background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 40px; }
+        .btn-delete { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 40px; margin-top: 8px; }
+        .cars-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; margin-top: 1rem; }
+        .auth-card { background: white; max-width: 480px; margin: 2rem auto; padding: 2rem; border-radius: 32px; box-shadow: 0 20px 35px -8px rgba(0,0,0,0.1); }
+        .auth-card input { width: 100%; padding: 0.9rem 1.2rem; margin: 0.6rem 0; border: 1px solid #e2e8f0; border-radius: 60px; }
+        .auth-card button { width: 100%; padding: 0.9rem; background: #1a4a6f; color: white; border: none; border-radius: 60px; font-weight: 600; cursor: pointer; }
+        @media (max-width: 768px) {
+            .admin-layout { flex-direction: column; }
+            .admin-sidebar { width: 100%; position: static; height: auto; border-right: none; border-bottom: 1px solid #e2e8f0; padding: 1rem; }
+            .admin-sidebar .sidebar-buttons { flex-direction: row; flex-wrap: wrap; }
+            .admin-content { padding: 1rem; }
+            .action-bar { padding: 0.8rem 1rem; }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+</head>
+<body>
+<div class="header">
+    <h1><i class="fas fa-car-side"></i> Drive & Go · Location de voitures premium</h1>
+    <button class="logout-header-btn hidden" id="globalLogoutBtn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+</div>
+<div class="container" id="content">
+    <div id="loginForm" class="auth-card">
+        <h2><i class="fas fa-key"></i> Connexion</h2>
+        <input type="text" id="loginUsername" placeholder="Nom d'utilisateur">
+        <input type="password" id="loginPassword" placeholder="Mot de passe">
+        <div id="loginError" class="error hidden" style="color:red"></div>
+        <button onclick="login()">Se connecter</button>
+        <p style="text-align:center; margin-top:20px;">Pas encore inscrit ? <a href="#" onclick="showRegister()">Créer un compte</a></p>
+    </div>
+    <div id="registerForm" class="auth-card hidden">
+        <h2><i class="fas fa-user-plus"></i> Inscription</h2>
+        <input type="text" id="regUsername" placeholder="Nom d'utilisateur">
+        <input type="email" id="regEmail" placeholder="Email">
+        <input type="password" id="regPassword" placeholder="Mot de passe (≥8 caractères)">
+        <div id="regError" class="error hidden" style="color:red"></div>
+        <button onclick="register()">S'inscrire</button>
+        <p style="text-align:center; margin-top:20px;">Déjà un compte ? <a href="#" onclick="showLogin()">Se connecter</a></p>
+    </div>
+    <div id="pageContent"></div>
+</div>
+<footer>Pipeline Microservices – Projet Master 1 | Drive & Go</footer>
+
+<script>
+    let token = localStorage.getItem('access_token');
+    let currentUserRole = null;
+    let currentUserId = null;
+
+    const AUTH_URL = 'http://localhost/api/auth';
+    const CARS_URL = 'http://localhost/api/cars';
+    const BOOKINGS_URL = 'http://localhost/api';
+    
+    let carsMap = new Map();
+    let usersMap = new Map();
+
+    function showToast(message, type = 'success') {
+        let bg = type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#3b82f6');
+        Toastify({ text: message, duration: 3000, gravity: "top", position: "right", style: { background: bg, borderRadius: '40px' } }).showToast();
+    }
+
+    async function fetchCars() {
+        try {
+            const resp = await fetch(`${CARS_URL}/`);
+            const cars = await resp.json();
+            carsMap.clear();
+            cars.forEach(c => carsMap.set(c.id, c));
+        } catch(e) { console.warn(e); }
+    }
+
+    async function fetchUsers() {
+        if (!token || currentUserRole !== 'admin') return;
+        try {
+            const resp = await fetch(`${AUTH_URL}/users/`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (resp.ok) {
+                const users = await resp.json();
+                usersMap.clear();
+                users.forEach(u => usersMap.set(u.id, u.username));
+            }
+        } catch(e) {}
+    }
+
+    async function ensureDataLoaded() {
+        await fetchCars();
+        if (currentUserRole === 'admin') await fetchUsers();
+    }
+
+    async function checkUserInfo() {
+        if (!token) return;
+        try {
+            const resp = await fetch(`${AUTH_URL}/profile/`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (resp.ok) {
+                const data = await resp.json();
+                currentUserRole = data.role;
+                currentUserId = data.id;
+                await ensureDataLoaded();
+            }
+        } catch(e) {}
+    }
+
+    async function login() {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const errDiv = document.getElementById('loginError');
+        if (!username || !password) {
+            errDiv.textContent = "Veuillez remplir tous les champs";
+            errDiv.classList.remove('hidden');
+            return;
+        }
+        errDiv.classList.add('hidden');
+        try {
+            const resp = await fetch(`${AUTH_URL}/login/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                token = data.access;
+                localStorage.setItem('access_token', token);
+                currentUserRole = data.user?.role;
+                currentUserId = data.user?.id;
+                updateUI();
+                showToast(`✅ Bonjour ${username} (${currentUserRole === 'admin' ? 'Admin' : 'Client'})`, 'success');
+            } else {
+                errDiv.textContent = data.error || "Identifiants invalides";
+                errDiv.classList.remove('hidden');
+            }
+        } catch(e) {
+            errDiv.textContent = "Erreur de connexion au serveur";
+            errDiv.classList.remove('hidden');
+        }
+    }
+
+    async function register() {
+        const username = document.getElementById('regUsername').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const errDiv = document.getElementById('regError');
+        if (!username || !email || !password) {
+            errDiv.textContent = "Tous les champs sont obligatoires";
+            errDiv.classList.remove('hidden');
+            return;
+        }
+        errDiv.classList.add('hidden');
+        try {
+            const resp = await fetch(`${AUTH_URL}/register/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+            if (resp.ok) {
+                showToast("Inscription réussie ! Connectez-vous.", 'success');
+                showLogin();
+                document.getElementById('loginUsername').value = username;
+            } else {
+                const data = await resp.json();
+                errDiv.textContent = JSON.stringify(data);
+                errDiv.classList.remove('hidden');
+            }
+        } catch(e) {
+            errDiv.textContent = "Erreur réseau";
+            errDiv.classList.remove('hidden');
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('access_token');
+        token = null;
+        currentUserRole = null;
+        currentUserId = null;
+        updateUI();
+        showToast("Déconnecté avec succès", 'info');
+    }
+
+    function showLogin() {
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('registerForm').classList.add('hidden');
+        document.getElementById('pageContent').innerHTML = '';
+        const logoutBtn = document.getElementById('globalLogoutBtn');
+        if (logoutBtn) logoutBtn.classList.add('hidden');
+    }
+    function showRegister() {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('registerForm').classList.remove('hidden');
+        document.getElementById('pageContent').innerHTML = '';
+        const logoutBtn = document.getElementById('globalLogoutBtn');
+        if (logoutBtn) logoutBtn.classList.add('hidden');
+    }
+
+    function updateUI() {
+        const isLoggedIn = !!token;
+        const loginDiv = document.getElementById('loginForm');
+        const registerDiv = document.getElementById('registerForm');
+        const logoutBtn = document.getElementById('globalLogoutBtn');
+        if (isLoggedIn) {
+            loginDiv.classList.add('hidden');
+            registerDiv.classList.add('hidden');
+            if (logoutBtn) logoutBtn.classList.remove('hidden');
+            checkUserInfo().then(() => {
+                if (currentUserRole === 'admin') showAdminDashboard();
+                else showUserDashboard();
+            });
+        } else {
+            loginDiv.classList.remove('hidden');
+            registerDiv.classList.add('hidden');
+            if (logoutBtn) logoutBtn.classList.add('hidden');
+            document.getElementById('pageContent').innerHTML = '';
+        }
+    }
+
+    // ---------- UTILISATEUR ----------
+    function showUserDashboard() {
+        const container = document.getElementById('pageContent');
+        container.innerHTML = `
+            <div class="action-bar">
+                <button onclick="showCars()"><i class="fas fa-car"></i> Voitures disponibles</button>
+                <button onclick="showActiveBookingsUser()"><i class="fas fa-calendar-alt"></i> Mes réservations</button>
+                <button onclick="showBookingHistoryUser()"><i class="fas fa-history"></i> Historique</button>
+            </div>
+            <div id="userContent"></div>
+        `;
+        showCars();
+    }
+
+    async function showCars() {
+        const container = document.getElementById('userContent');
+        container.innerHTML = '<div class="loading">Chargement...</div>';
+        try {
+            const resp = await fetch(`${CARS_URL}/`);
+            const allCars = await resp.json();
+            const cars = allCars.filter(c => c.available === true);
+            if (!cars.length) { container.innerHTML = '<div class="loading">Aucune voiture disponible.</div>'; return; }
+            let html = `<h2>🚘 Nos véhicules disponibles</h2><div class="cars-grid">`;
+            cars.forEach(car => {
+                const img = car.image_url || 'https://placehold.co/600x400?text=No+Image';
+                html += `<div class="car-card"><img class="car-image" src="${img}" onerror="this.src='https://placehold.co/600x400?text=Image+indisponible'"><div class="car-info"><h3>${escapeHtml(car.brand)} ${escapeHtml(car.model)}</h3><div class="badge badge-available">Disponible</div><div class="price">${Number(car.price_per_day).toLocaleString()} DA <span style="font-size:0.9rem;">/jour</span></div><button onclick="bookCar(${car.id}, ${car.price_per_day})"><i class="fas fa-calendar-check"></i> Réserver</button></div></div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        } catch(e) { container.innerHTML = '<div class="loading">Erreur de chargement.</div>'; }
+    }
+
+    async function bookCar(carId, pricePerDay) {
+        const start = prompt("Date de début (AAAA-MM-JJ)", new Date().toISOString().slice(0,10));
+        if (!start) return;
+        const end = prompt("Date de fin (AAAA-MM-JJ)", new Date(Date.now()+7*86400000).toISOString().slice(0,10));
+        if (!end) return;
+        const days = Math.ceil((new Date(end) - new Date(start)) / (86400000));
+        if (days <= 0) { showToast("Date invalide", 'error'); return; }
+        const total = days * pricePerDay;
+        if (!confirm(`Confirmer la réservation pour ${days} jours (total ${total.toLocaleString()} DA) ?`)) return;
+        try {
+            const resp = await fetch(`${BOOKINGS_URL}/bookings/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ car_id: carId, renter_id: currentUserId, start_date: start, end_date: end, total_price: total })
+            });
+            if (resp.ok) {
+                showToast("✅ Réservation créée ! En attente de validation.", 'success');
+                showActiveBookingsUser();
+            } else {
+                const err = await resp.json();
+                showToast("Erreur : " + JSON.stringify(err), 'error');
+            }
+        } catch(e) { showToast("Erreur technique", 'error'); }
+    }
+
+    async function showActiveBookingsUser() {
+        const container = document.getElementById('userContent');
+        container.innerHTML = '<div class="loading">Chargement...</div>';
+        try {
+            const resp = await fetch(`${BOOKINGS_URL}/bookings/`);
+            const all = await resp.json();
+            const active = all.filter(b => b.renter_id === currentUserId && ['pending', 'accepted', 'car_taken'].includes(b.status));
+            if (active.length === 0) { container.innerHTML = '<div class="loading">Aucune réservation active.</div>'; return; }
+            let html = `<h2>📋 Mes réservations actives</h2>`;
+            for (let b of active) {
+                const car = carsMap.get(b.car_id) || { brand: 'Voiture', model: `#${b.car_id}` };
+                let statusText = b.status === 'pending' ? 'En attente de validation' : (b.status === 'accepted' ? 'Acceptée - À retirer' : 'En cours (voiture prise)');
+                html += `<div class="reservation-card"><strong>Réservation #${b.id}</strong><br>🚗 ${escapeHtml(car.brand)} ${escapeHtml(car.model)}<br>📅 Du ${b.start_date} au ${b.end_date}<br>💰 ${Number(b.total_price).toLocaleString()} DA<br><span class="status-badge status-${b.status}">${statusText}</span>${b.status === 'pending' ? `<button onclick="cancelBooking(${b.id})"> Annuler</button>` : ''}</div>`;
+            }
+            container.innerHTML = html;
+        } catch(e) { container.innerHTML = '<div class="loading">Erreur chargement</div>'; }
+    }
+
+    async function showBookingHistoryUser() {
+        const container = document.getElementById('userContent');
+        container.innerHTML = '<div class="loading">Chargement...</div>';
+        try {
+            const resp = await fetch(`${BOOKINGS_URL}/bookings/`);
+            const all = await resp.json();
+            const history = all.filter(b => b.renter_id === currentUserId && ['completed', 'refused', 'cancelled'].includes(b.status));
+            if (history.length === 0) { container.innerHTML = '<div class="loading">Aucun historique.</div>'; return; }
+            let html = `<h2>📜 Historique</h2>`;
+            for (let b of history) {
+                const car = carsMap.get(b.car_id) || { brand: 'Voiture', model: `#${b.car_id}` };
+                let statusText = b.status === 'completed' ? 'Terminée' : (b.status === 'refused' ? 'Refusée' : 'Annulée');
+                html += `<div class="reservation-card"><strong>#${b.id}</strong> - ${escapeHtml(car.brand)} ${escapeHtml(car.model)}<br>📅 ${b.start_date} → ${b.end_date}<br>💰 ${Number(b.total_price).toLocaleString()} DA<br><span class="status-badge status-${b.status}">${statusText}</span></div>`;
+            }
+            container.innerHTML = html;
+        } catch(e) { container.innerHTML = '<div class="loading">Erreur</div>'; }
+    }
+
+    async function cancelBooking(bookingId) {
+        if (!confirm("Annuler cette réservation ?")) return;
+        try {
+            const resp = await fetch(`${BOOKINGS_URL}/bookings/${bookingId}/cancel/`, { method: 'POST' });
+            if (resp.ok) {
+                showToast("Réservation annulée", 'success');
+                showActiveBookingsUser();
+            } else showToast("Erreur lors de l'annulation", 'error');
+        } catch(e) { showToast("Erreur", 'error'); }
+    }
+
+    // ---------- ADMIN DASHBOARD ----------
+    let currentAdminActiveTab = 'pending';
+
+    function showAdminDashboard() {
+        const container = document.getElementById('pageContent');
+        container.innerHTML = `
+            <div class="admin-layout">
+                <div class="admin-sidebar">
+                    <div class="sidebar-buttons">
+                        <button class="sidebar-btn" data-tab="pending"><i class="fas fa-hourglass-half"></i> Demandes en attente</button>
+                        <button class="sidebar-btn" data-tab="accepted"><i class="fas fa-check-circle"></i> En attente retrait</button>
+                        <button class="sidebar-btn" data-tab="car_taken"><i class="fas fa-car-side"></i> Locations en cours</button>
+                        <button class="sidebar-btn" data-tab="completed"><i class="fas fa-flag-checkered"></i> Terminées</button>
+                        <button class="sidebar-btn" data-tab="cars"><i class="fas fa-wrench"></i> Gestion voitures</button>
+                        <button class="sidebar-btn" data-tab="allbookings"><i class="fas fa-list-ul"></i> Toutes réservations</button>
+                    </div>
+                </div>
+                <div class="admin-content" id="adminContent"></div>
+            </div>
+        `;
+        document.querySelectorAll('.sidebar-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.getAttribute('data-tab');
+                currentAdminActiveTab = tab;
+                document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                switch(tab) {
+                    case 'pending': showPendingPageAdmin(); break;
+                    case 'accepted': showAcceptedPageAdmin(); break;
+                    case 'car_taken': showCarTakenPageAdmin(); break;
+                    case 'completed': showCompletedPageAdmin(); break;
+                    case 'cars': showCarsManagementPage(); break;
+                    case 'allbookings': showAllBookingsAdmin(); break;
+                }
+            });
+        });
+        const defaultBtn = document.querySelector('.sidebar-btn[data-tab="pending"]');
+        if (defaultBtn) defaultBtn.click();
+        else showPendingPageAdmin();
+    }
+
+    async function showPendingPageAdmin() {
+        const sub = document.getElementById('adminContent');
+        sub.innerHTML = '<div class="loading">Chargement...</div>';
+        const resp = await fetch(`${BOOKINGS_URL}/bookings/`);
+        const bookings = await resp.json();
+        const pending = bookings.filter(b => b.status === 'pending');
+        if (!pending.length) { sub.innerHTML = '<div class="loading">Aucune demande en attente.</div>'; return; }
+        let html = `<h3>⏳ Demandes en attente</h3>`;
+        for (const b of pending) {
+            const car = carsMap.get(b.car_id) || { brand: 'Voiture', model: `#${b.car_id}` };
+            const client = usersMap.get(b.renter_id) || `Client #${b.renter_id}`;
+            html += `<div class="admin-card"><strong>Réservation #${b.id}</strong><br>👤 ${escapeHtml(client)} · 🚗 ${escapeHtml(car.brand)} ${escapeHtml(car.model)}<br>📅 ${b.start_date} → ${b.end_date} · 💰 ${Number(b.total_price).toLocaleString()} DA<br><button class="btn-accept" onclick="acceptBooking(${b.id}, ${b.car_id})">Accepter</button><button class="btn-refuse" onclick="refuseBooking(${b.id})">Refuser</button></div>`;
+        }
+        sub.innerHTML = html;
+    }
+
+    async function acceptBooking(bookingId, carId) {
+        if (!confirm("Accepter cette réservation ?")) return;
+        try {
+            await fetch(`${BOOKINGS_URL}/admin/bookings/${bookingId}/accept/`, { method: 'PATCH' });
+            await fetch(`${CARS_URL}/${carId}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ available: false }) });
+            showToast("Réservation acceptée !", 'success');
+            showPendingPageAdmin();
+        } catch(e) { showToast("Erreur", 'error'); }
+    }
+
+    async function refuseBooking(bookingId) {
+        if (!confirm("Refuser cette réservation ?")) return;
+        await fetch(`${BOOKINGS_URL}/admin/bookings/${bookingId}/refuse/`, { method: 'PATCH' });
+        showToast("Réservation refusée", 'info');
+        showPendingPageAdmin();
+    }
+
+    async function showAcceptedPageAdmin() {
+        const sub = document.getElementById('adminContent');
+        sub.innerHTML = '<div class="loading">Chargement...</div>';
+        const resp = await fetch(`${BOOKINGS_URL}/bookings/`);
+        const bookings = await resp.json();
+        const accepted = bookings.filter(b => b.status === 'accepted');
+        if (!accepted.length) { sub.innerHTML = '<div class="loading">Aucune réservation en attente de retrait.</div>'; return; }
+        let html = `<h3>✅ En attente de retrait</h3>`;
+        for (const b of accepted) {
+            const car = carsMap.get(b.car_id) || { brand: 'Voiture', model: `#${b.car_id}` };
+            const client = usersMap.get(b.renter_id) || `Client #${b.renter_id}`;
+            html += `<div class="admin-card"><strong>Réservation #${b.id}</strong><br>👤 ${escapeHtml(client)} · 🚗 ${escapeHtml(car.brand)} ${escapeHtml(car.model)}<br>📅 ${b.start_date} → ${b.end_date}<br><button class="btn-car-taken" onclick="markCarTakenAdmin(${b.id})">Voiture prise par le client</button></div>`;
+        }
+        sub.innerHTML = html;
+    }
+
+    async function markCarTakenAdmin(bookingId) {
+        if (!confirm("Confirmer que le client a pris la voiture ?")) return;
+        try {
+            const response = await fetch(`${BOOKINGS_URL}/bookings/${bookingId}/`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'car_taken' })
+            });
+            if (response.ok) {
+                showToast("✅ Voiture marquée comme prise", 'success');
+                await fetchCars();
+                const activeTab = document.querySelector('.sidebar-btn.active')?.getAttribute('data-tab');
+                if (activeTab === 'accepted') showAcceptedPageAdmin();
+                else showCarTakenPageAdmin();
+            } else {
+                const text = await response.text();
+                showToast(`Erreur ${response.status} : ${text}`, 'error');
+            }
+        } catch (err) {
+            showToast("Erreur réseau: " + err.message, 'error');
+        }
+    }
+
+    async function showCarTakenPageAdmin() {
+        const sub = document.getElementById('adminContent');
+        sub.innerHTML = '<div class="loading">Chargement...</div>';
+        const resp = await fetch(`${BOOKINGS_URL}/bookings/`);
+        const bookings = await resp.json();
+        const taken = bookings.filter(b => b.status === 'car_taken');
+        if (!taken.length) { sub.innerHTML = '<div class="loading">Aucune location en cours.</div>'; return; }
+        let html = `<h3>🚗 Locations en cours</h3>`;
+        for (const b of taken) {
+            const car = carsMap.get(b.car_id) || { brand: 'Voiture', model: `#${b.car_id}` };
+            const client = usersMap.get(b.renter_id) || `Client #${b.renter_id}`;
+            html += `<div class="admin-card"><strong>Réservation #${b.id}</strong><br>👤 ${escapeHtml(client)} · 🚗 ${escapeHtml(car.brand)} ${escapeHtml(car.model)}<br>📅 ${b.start_date} → ${b.end_date}<br><button class="btn-complete" onclick="completeRentalAdmin(${b.id}, ${b.car_id})">Marquer retournée</button></div>`;
+        }
+        sub.innerHTML = html;
+    }
+
+    async function completeRentalAdmin(bookingId, carId) {
+        if (!confirm("Le client a-t-il rendu la voiture ?")) return;
+        try {
+            const response = await fetch(`${BOOKINGS_URL}/bookings/${bookingId}/`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'completed' })
+            });
+            if (response.ok) {
+                await fetch(`${CARS_URL}/${carId}/`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ available: true })
+                });
+                showToast("🏁 Location terminée, voiture disponible", 'success');
+                await fetchCars();
+                const activeTab = document.querySelector('.sidebar-btn.active')?.getAttribute('data-tab');
+                if (activeTab === 'car_taken') showCarTakenPageAdmin();
+                else showCarTakenPageAdmin();
+            } else {
+                const text = await response.text();
+                showToast(`Erreur ${response.status} : ${text}`, 'error');
+            }
+        } catch (err) {
+            showToast("Erreur réseau: " + err.message, 'error');
+        }
+    }
+
+    async function showCompletedPageAdmin() {
+        const sub = document.getElementById('adminContent');
+        sub.innerHTML = '<div class="loading">Chargement...</div>';
+        const resp = await fetch(`${BOOKINGS_URL}/bookings/`);
+        const bookings = await resp.json();
+        const completed = bookings.filter(b => b.status === 'completed');
+        if (!completed.length) { sub.innerHTML = '<div class="loading">Aucune réservation terminée.</div>'; return; }
+        let html = `<h3>🏁 Réservations terminées</h3>`;
+        for (const b of completed) {
+            const car = carsMap.get(b.car_id) || { brand: 'Voiture', model: `#${b.car_id}` };
+            const client = usersMap.get(b.renter_id) || `Client #${b.renter_id}`;
+            html += `<div class="admin-card">#${b.id} – ${escapeHtml(client)} · ${escapeHtml(car.brand)} ${escapeHtml(car.model)}<br>📅 ${b.start_date} → ${b.end_date}<br><span class="status-badge status-completed">Terminée</span></div>`;
+        }
+        sub.innerHTML = html;
+    }
+
+    async function showAllBookingsAdmin() {
+        const sub = document.getElementById('adminContent');
+        sub.innerHTML = '<div class="loading">Chargement...</div>';
+        const resp = await fetch(`${BOOKINGS_URL}/bookings/`);
+        const bookings = await resp.json();
+        if (!bookings.length) { sub.innerHTML = '<div class="loading">Aucune réservation.</div>'; return; }
+        let html = `<h3>📋 Toutes les réservations</h3>`;
+        for (const b of bookings) {
+            const car = carsMap.get(b.car_id) || { brand: 'Voiture', model: `#${b.car_id}` };
+            const client = usersMap.get(b.renter_id) || `Client #${b.renter_id}`;
+            html += `<div class="admin-card"><strong>#${b.id}</strong> – ${escapeHtml(client)}<br>🚗 ${escapeHtml(car.brand)} ${escapeHtml(car.model)}<br>📅 ${b.start_date} → ${b.end_date}<br><span class="status-badge status-${b.status}">${b.status}</span></div>`;
+        }
+        sub.innerHTML = html;
+    }
+
+    async function showCarsManagementPage() {
+        const sub = document.getElementById('adminContent');
+        sub.innerHTML = '<div class="loading">Chargement...</div>';
+        const carsResp = await fetch(`${CARS_URL}/`);
+        const cars = await carsResp.json();
+        let html = `<div class="add-car-form"><input type="text" id="newBrand" placeholder="Marque"><input type="text" id="newModel" placeholder="Modèle"><input type="number" id="newYear" placeholder="Année"><input type="number" id="newPrice" placeholder="Prix DA/jour"><input type="text" id="newImage" placeholder="URL image (optionnel)"><button onclick="addCar()">Ajouter</button></div><h3>Parc automobile</h3><div class="cars-grid">`;
+        cars.forEach(car => {
+            const img = car.image_url || 'https://placehold.co/600x400?text=Voiture';
+            html += `<div class="car-card"><img class="car-image" src="${img}"><div class="car-info"><h3>${escapeHtml(car.brand)} ${escapeHtml(car.model)} (${car.year})</h3><div class="price">${Number(car.price_per_day).toLocaleString()} DA/jour</div><div class="badge ${car.available ? 'badge-available' : 'badge-unavailable'}">${car.available ? 'Disponible' : 'Indisponible'}</div><button class="btn-delete" onclick="deleteCar(${car.id})">Supprimer</button></div></div>`;
+        });
+        html += `</div>`;
+        sub.innerHTML = html;
+    }
+
+    // 🚀 CORRECTION DÉFINITIVE : ne JAMAIS envoyer image_url si vide ou trop long
+    async function addCar() {
+        const brand = document.getElementById('newBrand').value.trim();
+        const model = document.getElementById('newModel').value.trim();
+        const year = document.getElementById('newYear').value.trim();
+        const price = document.getElementById('newPrice').value.trim();
+        const url = document.getElementById('newImage').value.trim();
+
+        if (!brand || !model || !year || !price) {
+            showToast("Veuillez remplir tous les champs obligatoires", 'error');
+            return;
+        }
+
+        // Corps de base sans image_url
+        const carData = {
+            brand: brand,
+            model: model,
+            year: parseInt(year),
+            price_per_day: parseFloat(price),
+            available: true,
+            owner_id: currentUserId || 1
+        };
+
+        // Ajouter image_url uniquement si une URL valide (non vide, max 200 caractères) est fournie
+        if (url && url.length > 0 && url.length <= 200) {
+            carData.image_url = url;
+        } else if (url && url.length > 200) {
+            showToast("L'URL dépasse 200 caractères, elle sera ignorée.", 'warning');
+        }
+
+        try {
+            const response = await fetch(`${CARS_URL}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(carData)
+            });
+            if (response.ok) {
+                showToast("✅ Voiture ajoutée avec succès !", 'success');
+                await fetchCars();
+                showCarsManagementPage(); // rafraîchir la page admin
+                // Si l'utilisateur est admin, on reste sur la page gestion voitures
+            } else {
+                const err = await response.json();
+                let msg = "Erreur lors de l'ajout : ";
+                if (err.image_url) msg += "URL invalide ou trop longue. ";
+                else msg += JSON.stringify(err);
+                showToast(msg, 'error');
+            }
+        } catch(e) {
+            showToast("Erreur réseau : " + e.message, 'error');
+        }
+    }
+
+    async function deleteCar(carId) {
+        if (!confirm("Supprimer définitivement cette voiture ?")) return;
+        try {
+            await fetch(`${CARS_URL}/${carId}/`, { method: 'DELETE' });
+            showToast("Voiture supprimée", 'success');
+            await fetchCars();
+            showCarsManagementPage();
+        } catch(e) { showToast("Erreur", 'error'); }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;'));
+    }
+
+    updateUI();
+</script>
+</body>
+</html>

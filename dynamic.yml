@@ -1,0 +1,24 @@
+http:
+  routers:
+    auth:
+      rule: "PathPrefix(`/api/auth`)"
+      service: auth-service
+    car:
+      rule: "PathPrefix(`/api/cars`)"
+      service: car-service
+    booking:
+      rule: "PathPrefix(`/api/bookings`)"
+      service: booking-service
+  services:
+    auth-service:
+      loadBalancer:
+        servers:
+          - url: "http://auth-service:8000"
+    car-service:
+      loadBalancer:
+        servers:
+          - url: "http://car-service:8001"
+    booking-service:
+      loadBalancer:
+        servers:
+          - url: "http://booking-service:8002"
